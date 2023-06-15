@@ -3,8 +3,8 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import time
-from datetime import datetime
-
+from datetime import datetime, timedelta
+from tools import getIDbyTime,execSelectData,getNFromStatusTable,execListOfUpdateReq,isStationCanceled
 import pyodbc as pyodbc
 
 
@@ -29,60 +29,10 @@ def isEarlyForData(fk):
     print (year,month,day,hour,min)
 
     ################################################
-def getNFromStatusTable(num,condition,order):
-    result = []
-
-    req= f"""SELECT TOP ({num}) [id]
-      ,[TableName]
-      ,[FK]
-      ,[DataState]
-      ,[FileTime]
-      ,[VldState]
-      ,[SendState]
-      ,[R]
-  FROM [agr-dcontrol].[dbo].[VLDstat] where {condition} order by {order}"""
-    result= execSelectData(req)
-    return result
-
-    #cursor.commit()
-
-    ################
-def execSelectData(req):
-    cnxn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
-                          "Server=DESKTOP-3BJPAFM\\SQLEXPRESS;"
-                          "Database=agr-dcontrol;"
-                          "Trusted_Connection=yes;")
-    cursor = cnxn.cursor()
-
-    try:
-        print("execSelelect says:exequte sql query:\n", req)
-        cursor.execute(req)
-        rows = cursor.fetchall()
-    except pyodbc.OperationalError as msg:
-
-        print("Command skipped: ", msg)
-    return rows
-
-def execListOfUpdateReq(reqList):
 
 
 
 
-        cnxn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
-                              "Server=DESKTOP-3BJPAFM\\SQLEXPRESS;"
-                              "Database=agr-dcontrol;"
-                              "Trusted_Connection=yes;")
-        cursor = cnxn.cursor()
-        for req in reqList:
-            # This will skip and report errors
-            # For example, if the tables do not yet exist, this will skip over
-            # the DROP TABLE commands
-            try:
-                print("exequte sql query:\n", req)
-                cursor.execute(req)
-            except pyodbc.OperationalError as msg:
-                print("Command skipped: ", msg)
-        cursor.commit()
 ###################################################
 def areAllNotNullInDataFile(tab,id):
     result = []
@@ -130,20 +80,24 @@ def isNoData(tab,id):
     return yesThisIDisNODATA
 #############################################
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def runDataStateUpdate():
+    print_hi('  ##  datastate field update tool is runnig  ##')
 
-
+    delta22m= timedelta(minutes=22)
     for k in  range (62000):
         reqList = []
-        stlst = getNFromStatusTable(1000,"datastate=-10"," FK desc")
-        stlst2= getNFromStatusTable(1000,"datastate=0" , " FK asc")
-        stlst = stlst2
+        now= datetime.now()
+        idNowPlus22= getIDbyTime(now + delta22m)
+
+        stlst1 = getNFromStatusTable(1000,f" FK< {idNowPlus22} AND datastate != 1 "," FK desc")
+        stlst2 = getNFromStatusTable(1000, f" FK< {idNowPlus22} AND datastate = -10 ", " FK desc")
+        stlst= stlst1+stlst2
         for dataSession in stlst:
             id = dataSession[0]
             fk = dataSession[2]
             tab = dataSession[1]
-            stationExists = True
+            stationExists = not isStationCanceled(tab)
+
             if stationExists:
                 if isEarlyForData(fk):
                     dataState = 0
@@ -153,10 +107,12 @@ if __name__ == '__main__':
                     dataState = 200
                 else:
                     dataState = 100
+            else: dataState =-1
             req = f"UPDATE [dbo].[VLDstat]  SET  [DataState] = {dataState} WHERE id = {id}"
             reqList.append(req)
         execListOfUpdateReq(reqList)
         print("update completed", len(reqList))
+        print ('  ##  datastate field update tool is runnig  ##')
         time.sleep(10)
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
   #for j in range(10):
