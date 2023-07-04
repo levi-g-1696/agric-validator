@@ -1,3 +1,5 @@
+import time
+
 import pyodbc
 
 
@@ -40,7 +42,7 @@ def execSelectData(req):
     cursor = cnxn.cursor()
 
     try:
-      print("execSelelect says:exequte sql query:\n", req)
+    #  print("execSelelect says:exequte sql query:\n", req)
       cursor.execute(req)
       rows = cursor.fetchall()
     except pyodbc.OperationalError as msg:
@@ -60,10 +62,15 @@ def execListOfUpdateReq(reqList):
             # For example, if the tables do not yet exist, this will skip over
             # the DROP TABLE commands
             try:
-                print("exequte sql query:\n", req)
+        #        print("exequte sql query:\n", req)
                 cursor.execute(req)
             except pyodbc.OperationalError as msg:
                 print("Command skipped: ", msg)
+            except pyodbc.Error as deadlockMsg: # try after 1s after deadlock
+                print("Try second time : ", deadlockMsg)
+                time.sleep(1)
+                temporaryList= [req]
+                execListOfUpdateReq(temporaryList)
         cursor.commit()
 #####################################
 def getMonListFromStationsTable(tabName):
@@ -83,6 +90,28 @@ def getMonListFromStationsTable(tabName):
  #   cnxn.close()
    # return result
 
+#####################################################
+
+def getValueFromDB(tab,mon,id):
+
+        cnxn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                              "Server=DESKTOP-3BJPAFM\\SQLEXPRESS;"
+                              "Database=agr-dcontrol;"
+                              "Trusted_Connection=yes;")
+
+        cursor = cnxn.cursor()
+      #  print(f"select {mon} from [dbo].[{tab}] where id= {id}")
+        cursor.execute(
+            f"select {mon} from [dbo].[{tab}]where id= {id} ")
+
+        row = cursor.fetchall()
+        result = []
+        if len(row)==0: return None
+        else:
+          for val in row:
+            result.append(val[0])
+          return result[0]
+    ################################
 
   ##############################################################
 def getMonListFromStationsTable(tabName):
@@ -107,7 +136,28 @@ def getMonListFromStationsTable(tabName):
 def isStationCanceled(tab):
     req= f"SELECT  [status]  FROM [agr-dcontrol].[dbo].[stations] where tag= '{tab}'"
     res = execSelectData(req)
-    res = res[0][0]
+    yesCanceled = True
+    if len(res) ==0 : return yesCanceled
+    else:
+      res = res[0][0]
     #print("is station exist says:", res)
-    yesCanceled= res==0
-    return yesCanceled
+      yesCanceled= res==0
+      return yesCanceled
+
+"""
+d={'a37.monWS.230612142': 5, 'a37.monWD.230612142': 5, 'a37.monWDSTc.230612142': 5, 'a37.monWSMax.230612142': 5, 'a37.monT.230612142': 5, 'a37.monRH.230612142': 5, 'a37.monT12m.230612142': 5, 'a37.monT10m.230612142': 5, 'a37.monRAD.230612142': 5, 'a37.monPREC10.230612142': 5, 'a37.monBV.230612142': 5}
+id=0
+setStr=""
+tab=""
+anykey= next(iter(d))
+anykeyArr= anykey.split(".")
+tab = "["+ anykeyArr[0] + "v]"
+id =  anykeyArr[2]
+for key in d:
+    keyArr= key.split(".")
+    mon = keyArr[1]
+    setStr=setStr+ f" [{mon}] = {d[key]},"
+setStr= setStr[:-1]
+req=f"UPDATE {tab} SET {setStr}  WHERE id= {id}"
+print (req)
+"""

@@ -22,11 +22,11 @@ def isEarlyForData(fk):
     dt = datetime(year,month,day,hour,min)
     now= datetime.now()
     early = now < dt
-    print(year, month, day, hour, min, early)
+  #  print(year, month, day, hour, min, early)
 
     if early : return True
     else:return False
-    print (year,month,day,hour,min)
+  #  print (year,month,day,hour,min)
 
     ################################################
 
@@ -46,7 +46,7 @@ def areAllNotNullInDataFile(tab,id):
     enabledMonitorList = res.split(";")
     req= f"""SELECT top(1)  id FROM [{tab}] WHERE """
 
-    print(enabledMonitorList)
+  #  print(enabledMonitorList)
     req = req +enabledMonitorList[0] + " IS NOT NULL "
     for j in range(1,len(enabledMonitorList)):
       req= req +" AND "+ enabledMonitorList[j]+" IS NOT NULL"
@@ -69,7 +69,7 @@ def isNoData(tab,id):
     enabledMonitorList = res.split(";")
     req= f"""SELECT top(1)  id FROM [{tab}] WHERE """
 
-    print(enabledMonitorList)
+   # print(enabledMonitorList)
     req = req +enabledMonitorList[0] + " IS  NULL "
     for j in range(1,len(enabledMonitorList)):
       req= req +" AND "+ enabledMonitorList[j]+" IS  NULL"
@@ -80,22 +80,24 @@ def isNoData(tab,id):
     return yesThisIDisNODATA
 #############################################
 # Press the green button in the gutter to run the script.
-def runDataStateUpdate():
-    print_hi('  ##  datastate field update tool is runnig  ##')
+def runDataStateUpdate(num):
+        print_hi('  ##  datastate field update tool is runnig  ##')
 
-    delta22m= timedelta(minutes=22)
-    for k in  range (62000):
+        delta22m= timedelta(minutes=22)
+
         reqList = []
         now= datetime.now()
         idNowPlus22= getIDbyTime(now + delta22m)
 
-        stlst1 = getNFromStatusTable(1000,f" FK< {idNowPlus22} AND datastate != 1 "," FK desc")
-        stlst2 = getNFromStatusTable(1000, f" FK< {idNowPlus22} AND datastate = -10 ", " FK desc")
+        stlst1 = getNFromStatusTable(num,f" FK< {idNowPlus22} AND datastate = 0 or datastate = 200 "," FK desc")# all -10 0 last
+        stlst2 = getNFromStatusTable(num, f" FK< {idNowPlus22} AND datastate = -10 ", " FK desc")# new only
         stlst= stlst1+stlst2
+
         for dataSession in stlst:
             id = dataSession[0]
             fk = dataSession[2]
             tab = dataSession[1]
+            print (f"runDataStateUpdate says: processing for {tab} id= {fk}")
             stationExists = not isStationCanceled(tab)
 
             if stationExists:
@@ -113,8 +115,8 @@ def runDataStateUpdate():
         execListOfUpdateReq(reqList)
         print("update completed", len(reqList))
         print ('  ##  datastate field update tool is runnig  ##')
-        time.sleep(10)
+ #       time.sleep(10)
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
   #for j in range(10):
   #    statLst= getNFromStatusTable()
-
+#runDataStateUpdate()
