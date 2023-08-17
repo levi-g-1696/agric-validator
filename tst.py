@@ -2,9 +2,9 @@ import math
 import time
 from collections import namedtuple
 from datetime import datetime, timedelta
-from vldCodeMetods import resetVldResCoodeDict,appendVldCode, getVldResCodeDict,updateVldTab,updateStatusTab
-from chainValidator import vldClient,getValueFromDB
-from tools import getIDbyTime,execSelectData,getNFromStatusTable,isStationCanceled,getMonListFromStationsTable
+from vldCodeMetods import resetVldResCodeDict,appendVldCode, getVldResCodeDict,updateVldTabOf10mDB,updateStatusTabOf10mDB
+from chainValidator import vldClient,getValueFrom10mDB
+from tools import getIDbyTime,execSelectDataFor10mDB,getNFromStatusTableOf10mDB,isStationOf10mDBCanceled,getMonListFromStationsTableOf10mDB
 import pyodbc as pyodbc
 from vldCodeMetods import vldCodeDict
 
@@ -16,8 +16,8 @@ for k in  range (1):
         now= datetime.now()
         idNowPlus22= getIDbyTime(now + delta22m)
 
-        stlst = getNFromStatusTable(10,f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 "," FK  desc")
+        stlst = getNFromStatusTableOf10mDB(10, f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 ", " FK  desc")
       #  stlst = getNFromStatusTable (1, f" id = 37559"," FK  desc")
         print("stlst:" , stlst)
-        stlst = getNFromStatusTable(10,f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 "," FK  desc")
-        stlst = getNFromStatusTable(10,f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 "," FK  desc")
+        stlst = getNFromStatusTableOf10mDB(10, f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 ", " FK  desc")
+        stlst = getNFromStatusTableOf10mDB(10, f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState !=1 and vldState !=2 and vldState <80 ", " FK  desc")

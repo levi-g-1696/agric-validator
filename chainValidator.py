@@ -9,7 +9,7 @@
 from __future__ import annotations
 from collections import namedtuple
 from abc import ABC, abstractmethod
-from tools import  getValueFromDB
+from tools import  getValueFrom10mDB
 from vldCodeMetods import execScript,appendVldCode,getVldResCodeDict
 import random
 from math import nan
@@ -76,7 +76,7 @@ class RangeValidator(AbstractHandler):
 
     def vldFunc(self,tab, mon, id):
 
-      val =  getValueFromDB(tab,mon,id)
+      val =  getValueFrom10mDB(tab, mon, id)
 
       vldResult= execScript(mon,1,val)
     #  print ("range says:",vldResult)
@@ -94,7 +94,7 @@ class SuspSequenceValidator(AbstractHandler):
             appendVldCode(request.table, request.mon, request.id, vldCode)
             return super().handle(request)
     def vldFunc(self,mon, tab, id):
-        val = getValueFromDB(tab, mon, id)
+        val = getValueFrom10mDB(tab, mon, id)
         vldResult = execScript(mon, 2, val)
   #      print("sequence says:", vldResult)
         return vldResult

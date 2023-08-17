@@ -1,6 +1,6 @@
 import pyodbc as pyodbc
-from tools import  execSelectData,execListOfUpdateReq
-from DataStateUpdate import  isNoData
+from tools import  execSelectDataFor10mDB,execListOfUpdateReqFor10mDB,execListOfUpdateReqFor24hDB
+from DataStateUpdate import  isNoDataFor10mDB
 vldCodeDict= dict()
 vldResCodeDict= dict()
 tst={}
@@ -50,7 +50,7 @@ def calcResCode(lst):
 
         return ok
     ############################################################
-def updateVldTab( vldResDict):
+def updateVldTabOf10mDB(vldResDict):
     vldState=0
     id = 0
     setStr = ""
@@ -67,10 +67,28 @@ def updateVldTab( vldResDict):
     setStr = setStr[:-1]
     req = f"UPDATE {tab} SET {setStr}  WHERE id= {id}"
     print("make update: ", req)
-    execListOfUpdateReq([req])
+    execListOfUpdateReqFor10mDB([req])
+##################################################################
+def updateVldTabOf24hDB(vldResDict):
+    vldState=0
+    id = 0
+    setStr = ""
+    tab = ""
 
+    anykey = next(iter(vldResDict))
+    anykeyArr = anykey.split(".")
+    tab = "[" + anykeyArr[0] + "v]"
+    id = anykeyArr[2]
+    for key in vldResDict:
+        keyArr = key.split(".")
+        mon = keyArr[1]
+        setStr = setStr + f" [{mon}] = {vldResDict[key]},"
+    setStr = setStr[:-1]
+    req = f"UPDATE {tab} SET {setStr}  WHERE id= {id}"
+    print("make update: ", req)
+    execListOfUpdateReqFor24hDB([req])
     ###########################################################################
-def updateStatusTab(vldResDict):
+def updateStatusTabOf10mDB(vldResDict):
         ok = 1
         cannotValidate=0
         partialOKexists=2
@@ -105,7 +123,7 @@ def updateStatusTab(vldResDict):
 
         req = f"UPDATE [VLDstat] SET [VldState] ={statusVal}  WHERE  [TableName] ='{tab }' and FK= {id}"
         print("make update: ", req)
-        execListOfUpdateReq([req])
+        execListOfUpdateReqFor10mDB([req])
 ##########################################################
 
     ############################################################
@@ -131,7 +149,7 @@ def getVldResCodeDict():
 
 def removeFromVldCodeDict(tab,mon,id):
     return
-def resetVldResCoodeDict():
+def resetVldResCodeDict():
     global vldResCodeDict
     vldResCodeDict = dict()
     return

@@ -3,9 +3,9 @@ import json,os
 import time
 from collections import namedtuple
 from datetime import datetime, timedelta
-from tools import getIDbyTime,execSelectData,getNFromStatusTable,isStationCanceled,getMonListFromStationsTable,execListOfUpdateReq
-from VldStateUpdate import doVldProcessForDataSessions
-from DataStateUpdate import runDataStateUpdate
+from tools import getIDbyTime,execSelectDataFor10mDB,getNFromStatusTableOf10mDB,isStationOf10mDBCanceled,getMonListFromStationsTableOf10mDB,execListOfUpdateReqFor10mDB
+from VldStateUpdate import doVldProcessForDataSessionsOf10mDB,doVldProcessForDataSessionsOf24hDB
+from DataStateUpdate import runDataStateUpdateFor10mTables,runDataStateUpdateFor24hTables
 
 statusFile=".\\runStatus.json"
 workDirectory= r"C:\Users\office22\PycharmProjects\validator"
@@ -73,14 +73,16 @@ if __name__ == '__main__':
          now = datetime.now()
          print("from:", now)
          idNowPlus22 = getIDbyTime(now + delta22m)
-         runDataStateUpdate(500)
+         runDataStateUpdateFor10mTables(1000)
+         runDataStateUpdateFor24hTables(200)
          print ("datastate update for 500 rec is finished")
 
-         stlst = getNFromStatusTable(50, f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState =0 ",
+         stlst = getNFromStatusTableOf10mDB(50, f" FK < {idNowPlus22} AND (datastate = 1 OR datastate = 100) and vldState =0 ",
                                      " FK  desc")
          print("list for vld-process:", stlst)
          time.sleep(3.3)
-         doVldProcessForDataSessions(stlst)
+         doVldProcessForDataSessionsOf10mDB(stlst)
+
          print("\nVld Process For 50 new data sessionsis finished ")
          now2 = datetime.now()
          #print("elapsed time:", now2 - now,"\n")
